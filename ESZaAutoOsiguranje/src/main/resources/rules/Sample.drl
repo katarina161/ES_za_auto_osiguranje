@@ -1,0 +1,85 @@
+package com.sample
+ 
+import com.sample.Osiguranje;
+ 
+rule "Snaga motora <= 40KW"
+    when
+    	o : Osiguranje( snagaMotora <= 40 && osnovnaCena == 0 )
+    then
+    	o.setOsnovnaCena(10000);
+    	update(o);
+end
+
+rule "Snaga motora izmedju 40KW i 50KW"
+    when
+    	o : Osiguranje( snagaMotora > 40 && snagaMotora <= 50 && osnovnaCena == 0 )
+    then
+    	o.setOsnovnaCena(11000);
+    	update(o);
+end
+
+rule "Snaga motora izmedju 50KW i 75KW"
+    when
+    	o : Osiguranje( snagaMotora > 50 && snagaMotora <= 75 && osnovnaCena == 0 )
+    then
+    	o.setOsnovnaCena(15000);
+    	update(o);
+end
+
+rule "Snaga motora veca od 75KW"
+    when
+    	o : Osiguranje( snagaMotora > 75 && osnovnaCena == 0 )
+    then
+    	o.setOsnovnaCena(25000);
+    	update(o);
+end
+
+rule "Nova vozila"
+    when
+    	o : Osiguranje( novAutomobil == true && premijskiStepen == 0 )
+    then
+    	o.setPremijskiStepen(4);
+    	update(o);
+end
+
+rule "Nije bilo nezgoda"
+    when
+    	o : Osiguranje( proslogodisnjiPremijskiStepen > 0 && brojNezgoda == 0 && premijskiStepen == 0 )
+    then
+    	int novi = o.getProslogodisnjiPremijskiStepen() - 1;
+    	if(novi > 0) {
+    		o.setPremijskiStepen(novi);
+    	} else {
+    		o.setPremijskiStepen(1);
+    	}
+    	update(o);
+end
+
+rule "Bilo je nezgoda"
+    when
+    	o : Osiguranje( proslogodisnjiPremijskiStepen > 0 && brojNezgoda > 0 && premijskiStepen == 0 )
+    then
+    	int novi = o.getProslogodisnjiPremijskiStepen() + (3 * o.getBrojNezgoda());
+    	if(novi <= 12) {
+    		o.setPremijskiStepen(novi);
+    	} else {
+    		o.setPremijskiStepen(12);
+    	}
+    	update(o);
+end
+
+rule "Tekuci premijski stepen <= 4"
+    when
+    	o : Osiguranje( premijskiStepen <= 4 && konacnaCena == 0 )
+    then
+    	o.setKonacnaCena(o.getOsnovnaCena() * (0.8 + (o.getPremijskiStepen() * 0.05)));
+    	update(o);
+end
+
+rule "Tekuci premijski stepen >= 5"
+    when
+    	o : Osiguranje( premijskiStepen >= 5 && konacnaCena == 0 )
+    then
+    	o.setKonacnaCena(o.getOsnovnaCena() * (0.2 * o.getPremijskiStepen() + 0.1));
+    	update(o);
+end
